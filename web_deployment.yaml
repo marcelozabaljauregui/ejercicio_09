@@ -1,0 +1,59 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jobvacancyconfig
+  labels:
+    app: jobvacancy
+data:
+  RACK_ENV: production
+  PORT: "3000"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: jobvacancysecret
+  labels:
+    app: jobvacancy
+data:
+  DATABASE_URL: cG9zdGdyZXM6Ly9wb3N0Z3Jlc2FkbWluOmFkbWluMTIzQHBvc3RncmVzOjU0MzIvcG9zdGdyZXNkYg==
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: jobvacancy
+  labels:
+    app: jobvacancy
+spec:
+  selector:
+    app: jobvacancy
+  ports:
+  - protocol: TCP
+    port: 8081
+    targetPort: 3000
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jobvacancy
+  labels:
+    app: jobvacancy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jobvacancy
+  template:
+    metadata:
+      labels:
+        app: jobvacancy
+    spec:
+      containers:
+      - name: webapp
+        image: nicopaez/jobvacancy-ruby:1.0.5
+        envFrom:
+          - configMapRef:
+              name: jobvacancyconfig
+          - secretRef:
+              name: jobvacancysecret
